@@ -20,6 +20,14 @@ jobs:
         with:
           submodules: true
 
+      - name: Apply long-press translation patches
+        run: |
+          cd yuyansdk
+          git apply ../patches/longpress_translation.patch
+          git apply ../patches/longpress_translation_inputview.patch
+          git apply ../patches/longpress_translation_imeservice.patch
+          cd ..
+
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
