@@ -1,0 +1,44 @@
+diff --git a/src/main/java/com/yuyan/imemodule/keyboard/InputView.kt b/src/main/java/com/yuyan/imemodule/keyboard/InputView.kt
+--- a/src/main/java/com/yuyan/imemodule/keyboard/InputView.kt
++++ b/src/main/java/com/yuyan/imemodule/keyboard/InputView.kt
+@@ -86,8 +86,6 @@ class InputView(context: Context, private val service: ImeService) : LifecycleRe
+         get() = when {
+             isAddPhrases -> 4
+             aiTranslationState == AITranslationState.TRANSLATING -> 11
+-            aiTranslationState == AITranslationState.TRANSLATED -> 12
+-            shouldShowTranslateButton() -> 10
+             else -> InputModeSwitcher.mToggleStates.imeAction
+         }
+@@ -302,6 +300,12 @@ class InputView(context: Context, private val service: ImeService) : LifecycleRe
+         }
+     }
+ 
++    fun onEnterLongPress() {
++        if (aiTranslationState == AITranslationState.TRANSLATING) return
++        DevicesUtils.tryVibrate(this)
++        triggerTranslation()
++    }
++
+     override fun responseLongKeyEvent(result: Pair<PopupMenuMode, String>) {
+         val (mode, value) = result
+         if (mode != PopupMenuMode.None && !DecodingInfo.isAssociate && !DecodingInfo.isCandidatesEmpty) {
+@@ -706,9 +710,7 @@ class InputView(context: Context, private val service: ImeService) : LifecycleRe
+             commitDecInfoText(DecodingInfo.composingStrForCommit)
+             resetToIdleState()
+         }
+-        val fullText = service.getTextBeforeCursor(5000)
+-        val lastNewline = fullText.lastIndexOf('\n')
+-        val sourceText = if (lastNewline >= 0) fullText.substring(lastNewline + 1) else fullText
++        val sourceText = service.getTranslatableTextBeforeCursor(5000)
+ 
+         if (sourceText.isBlank()) {
+             Toast.makeText(context, R.string.translation_no_text, Toast.LENGTH_SHORT).show()
+@@ -731,7 +733,7 @@ class InputView(context: Context, private val service: ImeService) : LifecycleRe
+             result.onSuccess { translated ->
+                 service.deleteSurroundingText(sourceText.length)
+                 service.commitText(translated)
+-                aiTranslationState = AITranslationState.TRANSLATED
++                aiTranslationState = AITranslationState.IDLE
+             }.onFailure { error ->
+                 val msg = error.message ?: context.getString(R.string.translation_failed)
+                 Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
