@@ -1,0 +1,17 @@
+diff --git a/src/main/java/com/yuyan/imemodule/keyboard/BaseKeyboardView.kt b/src/main/java/com/yuyan/imemodule/keyboard/BaseKeyboardView.kt
+--- a/src/main/java/com/yuyan/imemodule/keyboard/BaseKeyboardView.kt
++++ b/src/main/java/com/yuyan/imemodule/keyboard/BaseKeyboardView.kt
+@@ -96,6 +96,13 @@ open class BaseKeyboardView(mContext: Context?) : View(mContext) {
+     private fun openPopupIfRequired() {
+         if(mCurrentKey != null) {
+             val softKey = mCurrentKey!!
++            if (softKey.code == KeyEvent.KEYCODE_ENTER) {
++                mAbortKey = true
++                mLongPressKey = false
++                mService?.onEnterLongPress()
++                dismissPreview()
++                return
++            }
+             val keyboardSymbol = ThemeManager.prefs.keyboardSymbol.getValue()
+             if (softKey.getkeyLabel().isNotBlank() && softKey.code != InputModeSwitcher.USER_KEYCODE_COMMA_EMOJI ) {
+                 val keyLabel = if (InputModeSwitcher.isLower) softKey.keyLabel.lowercase() else softKey.keyLabel
