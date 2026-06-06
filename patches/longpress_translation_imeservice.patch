@@ -1,0 +1,29 @@
+diff --git a/src/main/java/com/yuyan/imemodule/service/ImeService.kt b/src/main/java/com/yuyan/imemodule/service/ImeService.kt
+--- a/src/main/java/com/yuyan/imemodule/service/ImeService.kt
++++ b/src/main/java/com/yuyan/imemodule/service/ImeService.kt
+@@ -12,6 +12,7 @@ import android.view.View
+ import android.view.ViewGroup
+ import android.view.inputmethod.CursorAnchorInfo
+ import android.view.inputmethod.EditorInfo
++import android.view.inputmethod.ExtractedTextRequest
+ import android.view.inputmethod.InputConnection
+ import com.yuyan.imemodule.candidate.CandidateView
+ import com.yuyan.imemodule.data.emojicon.YuyanEmojiCompat
+@@ -280,6 +281,18 @@ class ImeService : InputMethodService() {
+     fun getTextBeforeCursor(length:Int) : String {
+         return currentInputConnection.getTextBeforeCursor(length, 0).toString()
+     }
++
++    fun getTranslatableTextBeforeCursor(length: Int): String {
++        val inputConnection = currentInputConnection ?: return ""
++        val extracted = inputConnection.getExtractedText(ExtractedTextRequest(), 0)
++        val text = extracted?.text?.toString()
++        if (!text.isNullOrBlank()) {
++            val safeEnd = extracted.selectionEnd.coerceIn(0, text.length)
++            return text.substring(0, safeEnd).takeLast(length)
++        }
++        return inputConnection.getTextBeforeCursor(length, 0).toString()
++    }
+ 
+     fun commitTextEditMenu(id:Int) {
+         currentInputConnection.performContextMenuAction(id)
