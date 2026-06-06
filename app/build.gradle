@@ -28,39 +28,17 @@ android {
             abortOnError false
         }
     }
-    
+
     packagingOptions {
         jniLibs {
             useLegacyPackaging true
         }
     }
 
-    signingConfigs {
-        release {
-            def keystorePropertiesFile = rootProject.file("keystore/keystore.properties")
-            def keystoreProperties = new Properties()
-            if (keystorePropertiesFile.exists()) {
-                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-            }
-            def keystoreFilePath = System.getenv("RELEASE_STORE_FILE") ?: keystoreProperties.getProperty('storeFile')
-            def keystorePassword = System.getenv("RELEASE_STORE_PASSWORD") ?: keystoreProperties.getProperty('storePassword')
-            def keyAliasName = System.getenv("RELEASE_KEY_ALIAS") ?: keystoreProperties.getProperty('keyAlias')
-            def keyPasswordValue = System.getenv("RELEASE_KEY_PASSWORD") ?: keystoreProperties.getProperty('keyPassword')
-            if (keystoreFilePath && keystorePassword && keyAliasName && keyPasswordValue) {
-                def keystoreFile = rootProject.file(keystoreFilePath)
-                if (keystoreFile.exists()) {
-                    storeFile keystoreFile
-                    storePassword keystorePassword
-                    keyAlias keyAliasName
-                    keyPassword keyPasswordValue
-                    v1SigningEnabled true
-                    v2SigningEnabled true
-                }
-            }
-        }
+    androidResources {
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:hw:handwriting*:hand_writing*:stroke*:wubi*:lx17*:ls17*:double_pinyin_abc*:double_pinyin_natural*:double_pinyin_mspy*:double_pinyin_sogou*:double_pinyin_ziguang*:wechat*:emoticon*:kaomoji*:flower*:huayang*:crop*:camera*:gallery*:google*:samsung*"
     }
 
-    //多渠道打包
     flavorDimensions = ["default"]
     productFlavors {
         offline {
@@ -75,20 +53,13 @@ android {
             shrinkResources true
             applicationIdSuffix  ".release"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg'
-            if (signingConfigs.release.storeFile != null) {
-                signingConfig signingConfigs.release
-            }
         }
 
         debug {
             applicationIdSuffix ".debug"
-            if (signingConfigs.release.storeFile != null) {
-                signingConfig signingConfigs.release
-            }
         }
-
     }
-    //    第三方库使用java1.8
+
     compileOptions {
         sourceCompatibility 17
         targetCompatibility 17
