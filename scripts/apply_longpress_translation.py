@@ -24,7 +24,7 @@ def replace_required(text: str, old: str, new: str, name: str) -> str:
 def patch_base_keyboard_view() -> None:
     path = SDK / "src/main/java/com/yuyan/imemodule/keyboard/BaseKeyboardView.kt"
     text = read(path)
-    if "fun onEnterLongPress()" in text:
+    if "mService?.onEnterLongPress()" in text:
         write(path, text)
         return
     old = "            val softKey = mCurrentKey!!\n            val keyboardSymbol = ThemeManager.prefs.keyboardSymbol.getValue()"
@@ -52,9 +52,16 @@ def patch_ime_service() -> None:
 def patch_input_view() -> None:
     path = SDK / "src/main/java/com/yuyan/imemodule/keyboard/InputView.kt"
     text = read(path)
+    if (
+        "fun onEnterLongPress()" in text
+        and "shouldShowTranslateButton() -> triggerTranslation()" not in text
+        and "getTranslatableTextBeforeCursor" in text
+    ):
+        write(path, text)
+        return
     text, count = re.subn(
         r"val enterKeyToggleState: Int\s*get\(\) = when \{.*?\n\s*\}",
-        "val enterKeyToggleState: Int\n        get() = when {\n            isAddPhrases -> 4\n            aiTranslationState == AITranslationState.TRANSLATING -> 11\n            else -> InputModeSwitcher.mToggleStates.imeAction\n        }",
+        "val enterKeyToggleState: Int\n        get() = when {\n            isAddPhrases -> 4\n            aiTranslationState == AITranslationState.TRANSLATING -> 11\n            aiTranslationState == AITranslationState.TRANSLATED -> 12\n            else -> InputModeSwitcher.mToggleStates.imeAction\n        }",
         text,
         count=1,
         flags=re.S,
@@ -65,15 +72,15 @@ def patch_input_view() -> None:
         text = replace_required(
             text,
             "    override fun responseLongKeyEvent(result: Pair<PopupMenuMode, String>) {",
-            "    fun onEnterLongPress() {\n        if (aiTranslationState == AITranslationState.TRANSLATING) return\n        DevicesUtils.tryVibrate(this)\n        triggerTranslation()\n    }\n\n    override fun responseLongKeyEvent(result: Pair<PopupMenuMode, String>) {",
+            "    fun onEnterLongPress() {\n        if (aiTranslationState == AITranslationState.TRANSLATING || aiTranslationState == AITranslationState.TRANSLATED) return\n        if (shouldShowTranslateButton()) {\n            DevicesUtils.tryVibrate(this)\n            triggerTranslation()\n        } else {\n            Toast.makeText(context, R.string.translation_no_text, Toast.LENGTH_SHORT).show()\n        }\n    }\n\n    override fun responseLongKeyEvent(result: Pair<PopupMenuMode, String>) {",
             "onEnterLongPress method",
         )
+    text = text.replace("                    shouldShowTranslateButton() -> triggerTranslation()\n", "", 1)
     text = text.replace(
         "        val fullText = service.getTextBeforeCursor(5000)\n        val lastNewline = fullText.lastIndexOf('\\n')\n        val sourceText = if (lastNewline >= 0) fullText.substring(lastNewline + 1) else fullText",
         "        val sourceText = service.getTranslatableTextBeforeCursor(5000)",
         1,
     )
-    text = text.replace("aiTranslationState = AITranslationState.TRANSLATED", "aiTranslationState = AITranslationState.IDLE")
     write(path, text)
 
 
