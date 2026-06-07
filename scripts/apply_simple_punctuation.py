@@ -48,6 +48,9 @@ def replace_function(text: str, name: str, new_body: str) -> str:
 def patch_symbol_container() -> None:
     path = SDK / 'src/main/java/com/yuyan/imemodule/keyboard/container/SymbolContainer.kt'
     text = read(path)
+    if 'fun showBasicSymbolsPage()' in text and 'fun showMoreSymbolsPage()' in text:
+        write(path, text)
+        return
 
     if 'import android.view.View' not in text:
         text = text.replace('import android.view.MotionEvent\n', 'import android.view.MotionEvent\nimport android.view.View\n', 1)
@@ -94,6 +97,9 @@ def patch_symbol_container() -> None:
 def patch_symbol_adapter() -> None:
     path = SDK / 'src/main/java/com/yuyan/imemodule/adapter/SymbolAdapter.kt'
     text = read(path)
+    if 'fun showBasicSymbolsPage()' in read(SDK / 'src/main/java/com/yuyan/imemodule/keyboard/container/SymbolContainer.kt'):
+        write(path, text)
+        return
 
     if 'import android.graphics.drawable.GradientDrawable' not in text:
         text = text.replace('import android.content.Context\n', 'import android.content.Context\nimport android.graphics.drawable.GradientDrawable\n', 1)
