@@ -39,7 +39,7 @@ def patch_symbol_container() -> None:
     )
     private val englishPunctuation = listOf(
         ",", ".", "?", "!", "'", "\"", ";", ":", "(", ")", "-", "_",
-        "/", "@", "#", "&", "*", "+", "=", "...", "$"
+        "/", "@", "#", "&", "*", "+", "=", "...", "\$"
     )
 """
         text = replace_required(text, marker, data, "punctuation lists")
