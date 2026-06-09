@@ -55,10 +55,10 @@ jobs:
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS || '' }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD || '' }}
 
-      - name: Upload Debug APK
+      - name: Upload APK
         uses: actions/upload-artifact@v5
         with:
-          name: yuyanime-debug
+          name: yuyanIme
           path: app/build/outputs/apk/offline/debug/*.apk
 
       - name: Upload Release APK (if signed)
